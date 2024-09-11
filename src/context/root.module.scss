@@ -1,0 +1,18 @@
+.wrapper_layout {
+    margin-top: var(--header-height);
+    padding-left: var(--navigation-width);
+    background-color: var(--root-layout);
+}
+
+.wrapper {
+    display: flex;
+    background-color: var(--children-layout);
+    border-top-right-radius: var(--root-radius);
+}
+
+.wrapper_children {
+    padding-left: 24px;
+    padding-right: 24px;
+    flex: 1;
+    max-width: 100%;
+}

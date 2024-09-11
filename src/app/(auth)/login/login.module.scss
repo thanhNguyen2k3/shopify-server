@@ -1,0 +1,25 @@
+.layout {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+}
+
+.wrapper {
+    width: 460px;
+    max-width: 100%;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 12px 12px;
+    border-radius: var(--root-radius);
+}
+
+.heading {
+    text-align: center;
+    margin: 12px 0;
+}
+
+.form {
+    & > * + * {
+        margin-top: 8px;
+    }
+}
