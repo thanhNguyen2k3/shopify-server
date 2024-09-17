@@ -5,6 +5,7 @@ import Button from '../button/button';
 import styles from './popper-filter.module.scss';
 import { MdCheck } from 'react-icons/md';
 import { Dispatch, SetStateAction } from 'react';
+import Checkbox from '../checkbox/checkbox';
 
 type Props = {
     title?: string;
@@ -35,12 +36,13 @@ const PopperFilter = ({ title, data, setState, state }: Props) => {
                 <div className={styles.wrapper} {...attrs}>
                     {data &&
                         data?.map((item) => (
-                            <div key={item.id} onClick={() => handleSelected(item.id)} className={styles.wrapper_label}>
-                                <div className={`${styles.checkbox} ${isChecked(item.id) && styles.active}`}>
-                                    <MdCheck />
-                                </div>
-                                <div className={styles.title}>{item.title}</div>
-                            </div>
+                            <Checkbox
+                                type="checkbox"
+                                style={{ position: 'unset' }}
+                                key={item.id}
+                                onChange={() => handleSelected(item.id)}
+                                title={item.title}
+                            />
                         ))}
 
                     <button className={styles.button}>Xóa</button>

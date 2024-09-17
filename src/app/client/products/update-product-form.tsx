@@ -1,7 +1,7 @@
 'use client';
 
 import { Dispatch, FormEvent, Fragment, memo, SetStateAction, useEffect, useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { GrPowerReset } from 'react-icons/gr';
 import { IoIosAddCircleOutline } from 'react-icons/io';
 import { CiWarning } from 'react-icons/ci';
@@ -25,6 +25,7 @@ import BackButton from '@/components/back-button/back-button';
 import { ExtandCategory, ExtandDataProps, PickUpFormCombines } from '@/types';
 import { AxiosError } from 'axios';
 import ToastMessage from '@/components/animation/toast-message/toast-message';
+import { useRouter } from 'next/navigation';
 
 type Props = {
     existingData?: ExtandDataProps | null;
@@ -32,6 +33,8 @@ type Props = {
 };
 
 const UpdateProductForm = memo(function UpdateProductForm({ existingData, categories }: Props) {
+    const queryClient = useQueryClient();
+
     const activates = [
         {
             id: 'active',
@@ -44,6 +47,8 @@ const UpdateProductForm = memo(function UpdateProductForm({ existingData, catego
             value: 'false',
         },
     ];
+
+    const router = useRouter();
 
     // Query params data
 
@@ -164,6 +169,16 @@ const UpdateProductForm = memo(function UpdateProductForm({ existingData, catego
 
             return response.data;
         },
+        onError: (error) => {
+            console.log('Error', error);
+        },
+        onSuccess: () => {
+            console.log('Success');
+
+            router.refresh();
+
+            queryClient.invalidateQueries({ queryKey: ['products'] });
+        },
     });
 
     const onSubmit = (e: FormEvent) => {
@@ -185,6 +200,7 @@ const UpdateProductForm = memo(function UpdateProductForm({ existingData, catego
             supplies: supplier || null,
             tags: tags || [],
             form_combines: forms || [],
+            inventory,
         };
 
         mutate(data);

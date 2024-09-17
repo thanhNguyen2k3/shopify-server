@@ -1,20 +1,22 @@
 import { IoSearch, IoFilter, IoChevronDownOutline } from 'react-icons/io5';
 import Tooltip from '@mui/material/Tooltip';
 import { LuArrowDownUp } from 'react-icons/lu';
-import { SyntheticEvent, useRef, useState } from 'react';
+import { Dispatch, SetStateAction, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useDebouncedCallback } from 'use-debounce';
 
 import styles from './search.module.scss';
 import Button from '@/components/button/button';
-import { useDebounce } from '@/hooks/useDebounce';
 import Separate from '../separate/separate';
 import PopperFilter from '../popper/popper-filter';
-import SearchInput from './search-input';
 import PopperArrange from '../popper/popper-arrange';
 
-type Props = {};
+type Props = {
+    searchDispatch?: Dispatch<SetStateAction<string>>;
+    searchValue?: string;
+};
 
-const Search = ({}: Props) => {
+const Search = ({ searchDispatch, searchValue }: Props) => {
     const labels = [
         {
             id: 'arrange_title',
@@ -63,12 +65,7 @@ const Search = ({}: Props) => {
     // State
 
     const [showSearch, setShowSearch] = useState<boolean>(false);
-    const [searchValue, setSearchValue] = useState<string>('');
-    const [loading, setLoading] = useState<boolean>(true);
     const [statusesState, setStatusesState] = useState<string[]>([]);
-
-    const debouncedValue = useDebounce(searchValue, 800);
-    const inputRef = useRef<HTMLInputElement | null>(null);
 
     const handleShowSearch = () => {
         setShowSearch(true);
@@ -78,25 +75,18 @@ const Search = ({}: Props) => {
         setShowSearch(false);
     };
 
-    const handleClear = () => {
-        setSearchValue('');
-        inputRef.current?.focus();
-    };
-
     // Effect
 
-    const handleSearchValue = (e: SyntheticEvent) => {
-        const value = (e.target as HTMLInputElement).value;
-        if (!value.startsWith(' ')) {
-            setSearchValue(value);
-        }
+    // search Query
 
-        setLoading(true);
-
-        setTimeout(() => {
-            setLoading(false);
-        }, 2000);
-    };
+    const debounced = useDebouncedCallback(
+        // function
+        (value) => {
+            searchDispatch!(value);
+        },
+        // delay in ms
+        1000,
+    );
 
     return (
         <div className={styles.wrapper}>
@@ -113,16 +103,17 @@ const Search = ({}: Props) => {
             >
                 <div className={styles.box_background}>
                     {/* Search input */}
-                    <SearchInput
-                        ref={inputRef}
-                        handleClear={handleClear}
-                        onChange={handleSearchValue}
-                        value={searchValue}
-                        loading={loading}
-                        name="search_product"
-                        id="search_product"
-                        placeholder="Tìm kiếm tất cả sản phẩm"
-                    />
+                    <div className={styles.search_box_input}>
+                        <span>
+                            <IoSearch color="#8a8a8a" size={18} />
+                        </span>
+                        <input
+                            defaultValue={searchValue}
+                            onChange={(e) => debounced(e.target.value)}
+                            type="text"
+                            placeholder="Tìm kiếm tất cả sản phẩm"
+                        />
+                    </div>
 
                     <div className={styles.wrapper_action}>
                         <Button onClick={handleHideSearch} activeType="button" variant="defaulted">

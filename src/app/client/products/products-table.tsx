@@ -1,54 +1,32 @@
 'use client';
+
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { MdCheck, MdOutlineInventory2 } from 'react-icons/md';
 import { TfiTrash } from 'react-icons/tfi';
 import { IoIosMore } from 'react-icons/io';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
+import Link from 'next/link';
 
 import Button from '@/components/button/button';
 import styles from './products-table.module.scss';
 import Search from '@/components/search/search';
 import TippyCustom from '@/tippy/tippy-custom';
 import Modal from '@/components/modal/modal';
-import { VariantColor } from '@/types/variant-color';
+import { restApi } from '@/configs/axios';
+import { ExtandDataProps } from '@/types';
+import BadgeCustom from '@/components/badge/badge';
+import Checkbox from '@/components/checkbox/checkbox';
+import Loader from '@/components/animation/loading/loader';
+import ArrangeButton from '@/components/arrange-button/arrange-button';
+import Pagination from '@mui/material/Pagination';
+import { PER_PAGE } from '@/const';
 
 type Props = {};
 
 const ProductTable = (props: Props) => {
     // data
-
-    const data = [
-        {
-            id: 1,
-            title: 'Áo thun 1',
-            status: 1,
-            inventory: 20,
-            category: 'Quần',
-            product_type: 'Quần',
-            image: '/logo.svg',
-            vendor: 'Cửa hàng của tôi',
-        },
-        {
-            id: 2,
-            title: 'Áo thun 2',
-            status: 1,
-            inventory: 20,
-            category: 'Quần',
-            product_type: 'Quần',
-            image: '/logo.svg',
-            vendor: 'Cửa hàng của tôi',
-        },
-        {
-            id: 3,
-            title: 'Áo thun 3',
-            status: 1,
-            inventory: 20,
-            category: 'Quần',
-            product_type: 'Quần',
-            image: '/logo.svg',
-            vendor: 'Cửa hàng của tôi',
-        },
-    ];
 
     const labels = [
         {
@@ -78,8 +56,11 @@ const ProductTable = (props: Props) => {
     ];
 
     // State
-    const [ids, setIds] = useState<number[]>([]);
+    const [ids, setIds] = useState<string[]>([]);
     const [selectedAll, setSelectedAll] = useState<boolean>(false);
+
+    // Search value
+    const [searchValue, setSearchValue] = useState<string>('');
 
     // Modal state
     const [modalContent, setModalContent] = useState<{
@@ -96,8 +77,8 @@ const ProductTable = (props: Props) => {
     };
 
     // Handle
-    const isChecked = (value: number) => ids.includes(value);
-    const handleSelected = (id: number) => {
+    const isChecked = (value: string) => ids.includes(value);
+    const handleSelected = (id: string) => {
         setIds((prev) => {
             if (prev.includes(id)) {
                 return prev.filter((item) => item !== id);
@@ -108,146 +89,280 @@ const ProductTable = (props: Props) => {
     };
 
     const handleSelectedAll = () => {
-        const selectedIds = data.map((item) => item.id);
+        const selectedIds = products?.data?.map((item) => item.id);
         setSelectedAll(!selectedAll);
 
         if (selectedAll) {
             return setIds([]);
         } else {
-            return setIds(selectedIds);
+            return setIds(selectedIds!);
         }
     };
 
+    // Query Data
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const pathname = usePathname();
+
+    const [arrangeValue, setArrangeValue] = useState<boolean>(true);
+    const [count, setCount] = useState<number | null>(null);
+
+    const createQueryString = useCallback(
+        (querys = [{ name: '', value: '' }]) => {
+            const params = new URLSearchParams(searchParams.toString());
+
+            querys.map((query) => {
+                return params.set(query.name, query.value);
+            });
+
+            return params.toString();
+        },
+        [searchParams],
+    );
+
+    const viewQuery = searchParams.get('view') ?? 'all';
+    const orderQuery = searchParams.get('orderby') ?? 'title';
+    const arrangeQuery = searchParams.get('arrange') ?? 'desc';
+    const page = searchParams.get('page') ?? '1';
+    const currentPage = parseInt(page, 10);
+
+    const { data: products, isLoading } = useQuery<{ data: ExtandDataProps[] }>({
+        queryKey: ['products', viewQuery, arrangeQuery, orderQuery, searchValue, page],
+        queryFn: async () => {
+            const response = await restApi.get(
+                `/api/products?search=${searchValue}&view=${viewQuery}&orderby=${orderQuery}&arrange=${arrangeQuery}&page=${page}`,
+            );
+
+            const totalCount = response.data.count;
+            const totalPages = Math.ceil(totalCount / PER_PAGE);
+
+            setCount(totalPages);
+
+            return response.data;
+        },
+        refetchOnMount: true,
+    });
+
+    const onChange = (_e: any, pagesize: number) => {
+        router.push(`${pathname}?${createQueryString([{ name: 'page', value: pagesize.toString() }])}`);
+    };
+
     return (
-        <div className={styles.wrapper}>
-            <div className={styles.wrapper_header}>
-                <div className={styles.wrapper_button}>
-                    <Button activeType="button" variant="defaulted">
-                        Tất cả
-                    </Button>
-                    <Button activeType="button" variant="defaulted">
-                        Đang hoạt động
-                    </Button>
-                    <Button activeType="button" variant="defaulted">
-                        Đã lưu trữ
-                    </Button>
-                </div>
-                <div className={styles.wrapper_action}>
-                    <Search />
-                </div>
-            </div>
-
-            {/* Modal */}
-
-            <Modal modal={showModal} setModal={setShowModal} {...modalContent} />
-
-            {/* table */}
-
-            <div className={styles.box}>
-                {ids && ids.length > 0 && (
-                    <div className={styles.table_action}>
-                        <div style={{ display: 'flex', columnGap: 12 }}>
-                            <div
-                                onClick={handleSelectedAll}
-                                className={`${styles.checkbox} ${selectedAll && styles.active}`}
-                            >
-                                <MdCheck />
-                            </div>
-                            <p>Đã chọn {ids.length} </p>
-                        </div>
-                        <div className={styles.table_action_item}>
-                            <Button sx={{ height: 24 }} activeType="button" variant="custom">
-                                Chỉnh sửa hàng loạt
-                            </Button>
-                            <Button sx={{ height: 24 }} activeType="button" variant="custom">
-                                Đặt thành đang hoạt động
-                            </Button>
-                            <TippyCustom
-                                interactive
-                                trigger="click"
-                                placement="bottom-end"
-                                render={(attrs) => (
-                                    <div {...attrs} className={styles.box_action}>
-                                        {labels.map((label) => (
-                                            <Button
-                                                onClick={() => handleGetContentForModal(label.children)}
-                                                activeType="button"
-                                                icon={label.icon}
-                                                placement="left"
-                                                sx={{
-                                                    width: '100%',
-                                                    fontWeight: 500,
-                                                    justifyContent: 'start',
-                                                    height: 32,
-                                                }}
-                                                variant={label.variant}
-                                                key={label.id}
-                                            >
-                                                {label.title}
-                                            </Button>
-                                        ))}
-                                    </div>
-                                )}
-                            >
-                                <Button
-                                    sx={{ columnGap: 0 }}
-                                    activeType="button"
-                                    variant="custom"
-                                    placement="left"
-                                    icon={IoIosMore}
-                                />
-                            </TippyCustom>
-                        </div>
+        <div>
+            <div className={styles.wrapper}>
+                <div className={styles.wrapper_header}>
+                    <div className={styles.wrapper_button}>
+                        <Button
+                            onClick={() =>
+                                router.push(`${pathname}?${createQueryString([{ name: 'view', value: 'all' }])}`)
+                            }
+                            activeType="button"
+                            variant="defaulted"
+                        >
+                            Tất cả
+                        </Button>
+                        <Button
+                            onClick={() =>
+                                router.push(`${pathname}?${createQueryString([{ name: 'view', value: 'active' }])}`)
+                            }
+                            activeType="button"
+                            variant="defaulted"
+                        >
+                            Đang hoạt động
+                        </Button>
+                        <Button
+                            onClick={() =>
+                                router.push(`${pathname}?${createQueryString([{ name: 'view', value: 'inActive' }])}`)
+                            }
+                            activeType="button"
+                            variant="defaulted"
+                        >
+                            Đã lưu trữ
+                        </Button>
                     </div>
-                )}
-                <div className={styles.table_wrapper}>
-                    <table cellSpacing={0} cellPadding={0} className={styles.table}>
-                        <thead className={styles.table_head}>
-                            <tr>
-                                <th>
-                                    <div
-                                        onClick={handleSelectedAll}
-                                        className={`${styles.checkbox} ${selectedAll && styles.active}`}
-                                    >
-                                        <MdCheck />
-                                    </div>
-                                </th>
-                                <th></th>
-                                <th>Sản phẩm</th>
-                                <th>Trạng thái</th>
-                                <th>Hàng trong kho</th>
-                                <th>Danh mục</th>
-                                <th>Loại</th>
-                                <th>Nhà cung cấp</th>
-                            </tr>
-                        </thead>
-                        <tbody className={styles.table_body}>
-                            {data.map((item) => {
-                                return (
-                                    <tr key={item.id} className={`${isChecked(item.id) && styles.checked}`}>
-                                        <td>
-                                            <div
-                                                onClick={() => handleSelected(item.id)}
-                                                className={`${styles.checkbox} ${isChecked(item.id) && styles.active}`}
-                                            >
-                                                <MdCheck />
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <Image width={40} height={40} src={item.image} alt="image" />
-                                        </td>
-                                        <td>{item.title}</td>
-                                        <td>{item.status && 'Đang hoạt động'}</td>
-                                        <td>Còn {item.inventory} trong kho</td>
-                                        <td>{item.category}</td>
-                                        <td>{item.product_type}</td>
-                                        <td>{item.vendor}</td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
+                    <div className={styles.wrapper_action}>
+                        <Search searchValue={searchValue} searchDispatch={setSearchValue} />
+                    </div>
                 </div>
+
+                {/* Modal */}
+
+                <Modal modal={showModal} setModal={setShowModal} {...modalContent} />
+
+                {/* table */}
+
+                <div className={styles.box}>
+                    {ids && ids.length > 0 && (
+                        <div className={styles.table_action}>
+                            <div style={{ display: 'flex', columnGap: 12 }}>
+                                <div
+                                    onClick={handleSelectedAll}
+                                    className={`${styles.checkbox} ${selectedAll && styles.active}`}
+                                >
+                                    <MdCheck />
+                                </div>
+                                <p>Đã chọn {ids.length} </p>
+                            </div>
+                            <div className={styles.table_action_item}>
+                                <Button sx={{ height: 24 }} activeType="button" variant="custom">
+                                    Chỉnh sửa hàng loạt
+                                </Button>
+                                <Button sx={{ height: 24 }} activeType="button" variant="custom">
+                                    Đặt thành đang hoạt động
+                                </Button>
+                                <TippyCustom
+                                    interactive
+                                    trigger="click"
+                                    placement="bottom-end"
+                                    render={(attrs) => (
+                                        <div {...attrs} className={styles.box_action}>
+                                            {labels.map((label) => (
+                                                <Button
+                                                    onClick={() => handleGetContentForModal(label.children)}
+                                                    activeType="button"
+                                                    icon={label.icon}
+                                                    placement="left"
+                                                    sx={{
+                                                        width: '100%',
+                                                        fontWeight: 500,
+                                                        justifyContent: 'start',
+                                                        height: 32,
+                                                    }}
+                                                    variant={label.variant as any}
+                                                    key={label.id}
+                                                >
+                                                    {label.title}
+                                                </Button>
+                                            ))}
+                                        </div>
+                                    )}
+                                >
+                                    <Button
+                                        sx={{ columnGap: 0 }}
+                                        activeType="button"
+                                        variant="custom"
+                                        placement="left"
+                                        icon={IoIosMore}
+                                    />
+                                </TippyCustom>
+                            </div>
+                        </div>
+                    )}
+                    <div className={styles.table_wrapper}>
+                        <table cellSpacing={0} cellPadding={0} className={styles.table}>
+                            <thead className={styles.table_head}>
+                                <tr>
+                                    <th>
+                                        <Checkbox type="checkbox" onChange={handleSelectedAll} />
+                                    </th>
+                                    <th></th>
+                                    <th>
+                                        <ArrangeButton
+                                            onClick={() => {
+                                                setArrangeValue(!arrangeValue);
+
+                                                router.replace(
+                                                    `${pathname}?${createQueryString([
+                                                        { name: 'orderby', value: 'title' },
+                                                        { name: 'arrange', value: arrangeValue ? 'desc' : 'asc' },
+                                                    ])}`,
+                                                );
+                                            }}
+                                            arrange={arrangeQuery}
+                                            tooltip="A-Z"
+                                        >
+                                            Sản phẩm
+                                        </ArrangeButton>
+                                    </th>
+                                    <th>Trạng thái</th>
+                                    <th>
+                                        <ArrangeButton
+                                            onClick={() => {
+                                                setArrangeValue(!arrangeValue);
+
+                                                router.replace(
+                                                    `${pathname}?${createQueryString([
+                                                        { name: 'orderby', value: 'inventory' },
+                                                        { name: 'arrange', value: arrangeValue ? 'desc' : 'asc' },
+                                                    ])}`,
+                                                );
+                                            }}
+                                            arrange={arrangeQuery}
+                                            tooltip="Nhỏ đến lớn"
+                                        >
+                                            Hàng trong kho
+                                        </ArrangeButton>
+                                    </th>
+                                    <th>Danh mục</th>
+                                    <th>Loại</th>
+                                    <th>Nhà cung cấp</th>
+                                </tr>
+                            </thead>
+
+                            <tbody className={styles.table_body}>
+                                {isLoading && (
+                                    <tr>
+                                        <td>
+                                            <Loader style={{ position: 'absolute' }} />
+                                        </td>
+                                    </tr>
+                                )}
+                                {products?.data.length === 0 ? (
+                                    <tr className={styles.no_rows}>
+                                        <td>Chưa có sản phẩm nào 😪</td>
+                                    </tr>
+                                ) : (
+                                    products?.data?.map((item) => {
+                                        return (
+                                            <tr key={item.id} className={`${isChecked(item?.id) && styles.checked}`}>
+                                                <td>
+                                                    <Checkbox
+                                                        style={{ position: 'unset' }}
+                                                        type="checkbox"
+                                                        checked={isChecked(item.id)}
+                                                        onChange={() => handleSelected(item.id)}
+                                                    />
+                                                </td>
+                                                <td>
+                                                    <Image
+                                                        unoptimized
+                                                        width={40}
+                                                        height={40}
+                                                        src={item?.images![0]?.image?.url!}
+                                                        alt="image"
+                                                    />
+                                                </td>
+                                                <td>
+                                                    <Link href={`/products/${item.id}`}>{item.title}</Link>
+                                                </td>
+                                                <td>
+                                                    <BadgeCustom status={item.activate!} title={item.activate!} />
+                                                </td>
+                                                <td>Còn {item.inventory} trong kho</td>
+                                                <td>{item.category.title}</td>
+                                                <td>{item.product_type || 'chưa cung cấp'}</td>
+                                                <td>{item.supplies || 'Chưa cung cấp'}</td>
+                                            </tr>
+                                        );
+                                    })
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* Pagination */}
+            </div>
+            <div className={styles.paginate_wrapper}>
+                {products?.data.length! > 0 && (
+                    <Pagination
+                        onChange={onChange}
+                        count={count!}
+                        page={currentPage}
+                        variant="outlined"
+                        shape="rounded"
+                    />
+                )}
             </div>
         </div>
     );

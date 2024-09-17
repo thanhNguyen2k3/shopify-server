@@ -63,3 +63,5 @@ export const provinces = [
     { id: 'vinh_phuc', name: 'Vĩnh Phúc' },
     { id: 'yen_bai', name: 'Yên Bái' },
 ];
+
+export const PER_PAGE = 20;

@@ -5,7 +5,7 @@ import { CgSpinnerTwo } from 'react-icons/cg';
 
 import styles from './search-input.module.scss';
 
-type InputProps = HTMLProps<HTMLInputElement>;
+type InputProps = InputHTMLAttributes<HTMLInputElement>;
 
 type Props = InputProps & {
     loading?: boolean;
@@ -13,25 +13,23 @@ type Props = InputProps & {
 };
 
 // eslint-disable-next-line react/display-name
-const SearchInput = forwardRef(
-    ({ handleClear, loading, style: sx, value, ...props }: Props, ref: LegacyRef<HTMLInputElement>) => {
-        return (
-            <div style={sx} className={styles.search_box_input}>
-                <span>
-                    <IoSearch color="#8a8a8a" size={18} />
+const SearchInput = ({ handleClear, loading, style: sx, value, ...props }: Props) => {
+    return (
+        <div style={sx} className={styles.search_box_input}>
+            <span>
+                <IoSearch color="#8a8a8a" size={18} />
+            </span>
+            <input {...props} value={value} type="text" placeholder="Tìm kiếm tất cả sản phẩm" />
+            {loading && value && (
+                <span className={styles.loading}>
+                    <CgSpinnerTwo size={18} />
                 </span>
-                <input {...props} ref={ref} value={value} type="text" placeholder="Tìm kiếm tất cả sản phẩm" />
-                {loading && value && (
-                    <span className={styles.loading}>
-                        <CgSpinnerTwo size={18} />
-                    </span>
-                )}
-                <span onClick={handleClear} className={styles.clear}>
-                    <AiOutlineCloseCircle size={18} />
-                </span>
-            </div>
-        );
-    },
-);
+            )}
+            <span onClick={handleClear} className={styles.clear}>
+                <AiOutlineCloseCircle size={18} />
+            </span>
+        </div>
+    );
+};
 
 export default SearchInput;

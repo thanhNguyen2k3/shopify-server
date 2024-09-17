@@ -1,4 +1,4 @@
-import { HTMLAttributes, useEffect, useState } from 'react';
+import { HTMLAttributes } from 'react';
 import styles from './toast-message.module.scss';
 import { FaRegCircleCheck } from 'react-icons/fa6';
 import { MdErrorOutline } from 'react-icons/md';
@@ -9,20 +9,8 @@ type Props = HTMLAttributes<HTMLDivElement> & {
 };
 
 const ToastMessage = ({ isStatus, message, ...props }: Props) => {
-    const [time, setTime] = useState<boolean>(true);
-
-    useEffect(() => {
-        setTimeout(() => {
-            setTime(false);
-        }, 3000);
-    }, []);
-
     return (
-        <div
-            {...props}
-            style={{ transform: !time ? 'translateY(-130px)' : 'translateY(0)' }}
-            className={styles.wrapper}
-        >
+        <div {...props} className={styles.wrapper}>
             {isStatus === 'error' && (
                 <div className={`${styles.toast} ${styles.error}`}>
                     <div className={styles.icon}>

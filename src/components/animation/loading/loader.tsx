@@ -1,8 +1,11 @@
+import { HTMLAttributes } from 'react';
 import styles from './loader.module.scss';
 
-const Loader = () => {
+type Props = HTMLAttributes<HTMLDivElement> & {};
+
+const Loader = ({ ...props }: Props) => {
     return (
-        <div className={styles.wrapper}>
+        <div {...props} className={styles.wrapper}>
             <div className={styles.loader}>
                 <span></span>
                 <span></span>

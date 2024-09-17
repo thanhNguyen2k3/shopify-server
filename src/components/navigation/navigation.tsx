@@ -3,17 +3,20 @@
 import { GoHomeFill } from 'react-icons/go';
 import { RiShoppingBagFill } from 'react-icons/ri';
 import { BsArrowReturnRight } from 'react-icons/bs';
-import Link from 'next/link';
+import { IoSettingsOutline } from 'react-icons/io5';
 import { usePathname } from 'next/navigation';
+import { HTMLAttributes } from 'react';
+import Link from 'next/link';
 
 import styles from './navigation.module.scss';
-type Props = {};
 
-const Navigation = (props: Props) => {
+type Props = HTMLAttributes<HTMLDivElement> & { ref?: any };
+
+const Navigation = ({ ref, ...props }: Props) => {
     const menus = [
         {
             id: 'home',
-            to: '/',
+            to: '/dashboard',
             title: 'Trang chủ',
             children: null,
             icon: GoHomeFill,
@@ -41,13 +44,19 @@ const Navigation = (props: Props) => {
                 },
             ],
         },
+        {
+            id: 'settings',
+            to: '/settings',
+            title: 'Cài đặt',
+            icon: IoSettingsOutline,
+        },
     ];
 
     const pathName = usePathname();
     const checkPathName = pathName.split('/')[1];
 
     return (
-        <div className={styles.wrapper}>
+        <div className={styles.wrapper} {...props} ref={ref} title="navigation">
             <ul className={styles.nav_list}>
                 {menus.map((item) => {
                     const Icon = item.icon;

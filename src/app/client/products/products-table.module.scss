@@ -59,6 +59,8 @@
 .table_wrapper {
     overflow-x: auto;
     width: 100%;
+    position: relative;
+    min-height: 300px;
 }
 
 .table {
@@ -87,6 +89,22 @@
 }
 
 .table_body {
+    .no_rows {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        h1 {
+            font-size: 18px;
+            text-align: center;
+        }
+    }
+
     tr {
         td {
             border-top: var(--root-border-table);
@@ -95,6 +113,14 @@
             padding: 8px 12px;
             text-align: left;
             white-space: nowrap;
+
+            a:hover {
+                text-decoration: underline;
+            }
+
+            &:nth-child(5) {
+                color: #8e0b21;
+            }
         }
     }
 }
@@ -131,4 +157,10 @@
     box-shadow: var(--root-box-shadow);
     border-radius: var(--root-radius);
     padding: 6px 6px;
+}
+
+.paginate_wrapper {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
 }

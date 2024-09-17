@@ -3,10 +3,9 @@ import { IoMdClose } from 'react-icons/io';
 
 import styles from './modal.module.scss';
 import Button from '../button/button';
-import { VariantColor } from '@/types/variant-color';
 import AnimationModal from '../animation/modal/animation-modal';
 
-type Props = VariantColor & {
+type Props = {
     children?: ReactNode;
     title?: string;
     body?: string;
@@ -15,7 +14,7 @@ type Props = VariantColor & {
     setModal?: Dispatch<SetStateAction<boolean>>;
 };
 
-const Modal = ({ body, footer, title, variant, modal, setModal }: Props) => {
+const Modal = ({ body, footer, title, modal, setModal }: Props) => {
     const handleHideModal = () => {
         setModal!(false);
     };
@@ -40,7 +39,7 @@ const Modal = ({ body, footer, title, variant, modal, setModal }: Props) => {
                     <Button onClick={handleHideModal} activeType="button" variant="custom" sx={{ height: 28 }}>
                         Hủy
                     </Button>
-                    <Button activeType="button" variant={variant!} sx={{ height: 28 }}>
+                    <Button activeType="button" variant={'primary'} sx={{ height: 28 }}>
                         {footer}
                     </Button>
                 </div>

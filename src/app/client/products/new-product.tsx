@@ -21,9 +21,10 @@ import { restApi } from '@/configs/axios';
 import { Category, Image } from '@prisma/client';
 import Heading from '@/components/haeding/heading';
 import BackButton from '@/components/back-button/back-button';
-import { redirect, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { AxiosError } from 'axios';
 import { PickUpFormCombines } from '@/types';
+import ToastMessage from '@/components/animation/toast-message/toast-message';
 
 type Props = {};
 
@@ -63,6 +64,9 @@ const NewProduct = ({}: Props) => {
     const [productType, setProductType] = useState<string>('');
     const [supplier, setSupplier] = useState<string>('');
     const [tags, setTags] = useState<string[]>([]);
+
+    const [invalidField, setInvalidField] = useState<string | null>(null);
+    //
 
     const handleChange = (value: string, dispatch: Dispatch<SetStateAction<string>>) => {
         dispatch(value);
@@ -129,7 +133,15 @@ const NewProduct = ({}: Props) => {
             return response.data;
         },
         onError: (erorr) => {
-            console.log('Erorr');
+            if (variantValues) {
+                variantValues?.forEach((value: any) => {
+                    if (value.image === null) {
+                        setInvalidField('Vui lòng hoàn thành các biến thể sản phẩm');
+                    }
+                });
+            }
+
+            console.log('Erorr', erorr);
         },
         onSuccess: (data) => {
             return router.replace(`/products/${data.data.id}`);
@@ -155,6 +167,7 @@ const NewProduct = ({}: Props) => {
             supplies: supplier || null,
             tags: tags || [],
             form_combines: forms || [],
+            inventory,
         };
 
         mutate(data);
@@ -162,6 +175,7 @@ const NewProduct = ({}: Props) => {
 
     return (
         <Fragment>
+            {invalidField && <ToastMessage isStatus={'error'} message={invalidField!} />}
             <Heading title="Thêm sản phẩm" button={<BackButton />} />
             <form onSubmit={onSubmit}>
                 <div className={styles.wrapper_new_form}>

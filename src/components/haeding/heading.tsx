@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import styles from './heading.module.scss';
+import BadgeCustom from '../badge/badge';
 
 type Props = {
     title: string;
@@ -13,8 +14,7 @@ const Heading = ({ title, button, status, titleStatus }: Props) => {
         <h1 className={styles.heading}>
             {button && button}
             {title}
-            {status === 'active' && <span className={styles.active}>{titleStatus}</span>}
-            {status === 'inActive' && <span className={styles.in_active}>{titleStatus}</span>}
+            <BadgeCustom status={status} title={titleStatus} />
         </h1>
     );
 };

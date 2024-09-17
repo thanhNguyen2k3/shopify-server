@@ -1,9 +1,18 @@
+import { PER_PAGE } from '@/const';
 import { db } from '@/lib/db';
 import { productSchema } from '@/lib/definitions';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const GET = async (req: NextRequest) => {
     const { searchParams } = new URL(req.url);
+
+    const viewQuery = searchParams.get('view')?.toString() ?? 'all';
+    const orderQuery = searchParams.get('orderby')?.toString() ?? 'title';
+    const arrangeQuery = searchParams.get('arrange')?.toString() ?? 'desc';
+    const searchQuery = searchParams.get('search')?.toString() ?? '';
+    const page = searchParams.get('page')?.toString() ?? '1';
+
+    const currentPage = Math.max(Number(page), 1);
 
     try {
         const data = await db.product.findMany({
@@ -25,13 +34,45 @@ export const GET = async (req: NextRequest) => {
                 },
                 form_combines: true,
             },
+            where: {
+                activate: viewQuery === 'all' ? undefined : viewQuery,
+                OR: [
+                    {
+                        title: {
+                            contains: searchQuery.replace(/(\w)\s+(\w)/g, '$1 <-> $2'),
+                            mode: 'insensitive',
+                        },
+                    },
+                ],
+            },
+            orderBy: {
+                [orderQuery!]: arrangeQuery,
+            },
+            skip: (currentPage - 1) * PER_PAGE,
+            take: PER_PAGE,
         });
+
+        const count = await db.product.count({
+            where: {
+                activate: viewQuery === 'all' ? undefined : viewQuery,
+                OR: [
+                    {
+                        title: {
+                            contains: searchQuery,
+                            mode: 'insensitive',
+                        },
+                    },
+                ],
+            },
+        });
+
+        console.log(count);
 
         if (data.length === 0) {
             return NextResponse.json({ message: 'Dữ liệu trống', data }, { status: 201 });
         }
 
-        return NextResponse.json({ message: 'Dữ liệu hiện có', data }, { status: 200 });
+        return NextResponse.json({ message: 'Dữ liệu hiện có', data, count: count }, { status: 200 });
     } catch (error) {
         return NextResponse.json({ error }, { status: 400 });
     }

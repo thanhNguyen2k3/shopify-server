@@ -72,7 +72,7 @@ const VariantItem = ({ variant, setState, state, variantId }: Props) => {
                     <div>
                         <div className={`${styles.image}  ${styles.img_60}`}>
                             {variant?.image ? (
-                                <Image src={variant.image.url} width={60} height={60} alt="image" />
+                                <Image unoptimized src={variant.image.url} width={60} height={60} alt="image" />
                             ) : (
                                 <BiImageAdd />
                             )}

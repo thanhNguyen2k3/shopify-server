@@ -47,7 +47,7 @@ const UploadForm = ({ setImages, images }: Props) => {
                     <div className={styles.grid_images}>
                         {fileIds?.map((item) => (
                             <div key={item.name} className={styles.grid_images_item}>
-                                <Image src={item.url!} width={110} height={110} alt="image" />
+                                <Image unoptimized src={item.url!} width={110} height={110} alt="image" />
                             </div>
                         ))}
                         <div

@@ -8,5 +8,17 @@
     background-color: var(--root-layout);
     width: 100%;
     max-width: 100%;
-    z-index: 9999;
+    z-index: 510;
+}
+
+.wrapper_modal {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.2);
+    z-index: -1;
+    overflow: hidden;
+    transition: all ease-in 300ms;
 }

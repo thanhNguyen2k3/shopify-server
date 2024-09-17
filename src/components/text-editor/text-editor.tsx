@@ -42,7 +42,7 @@ const modules = {
 
 const StyledReactQuill = styled(ReactQuill)`
     .ql-editor {
-        min-height: 150px;
+        min-height: 360px;
     }
 `;
 

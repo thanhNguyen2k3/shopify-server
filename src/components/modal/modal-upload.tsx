@@ -206,7 +206,6 @@ const ModalUpload = ({ modalState, modalDispatch, fileStates, fileDispath, onSel
                 <div className={styles.body}>
                     <div className={styles.body_action}>
                         <SearchInput
-                            ref={inputRef}
                             value={searchFileValue}
                             loading={loading}
                             handleClear={handleClear}
@@ -257,7 +256,7 @@ const ModalUpload = ({ modalState, modalDispatch, fileStates, fileDispath, onSel
                                                 }}
                                             />
 
-                                            <Image src={item.url} width={100} height={100} alt="image" />
+                                            <Image unoptimized src={item.url} width={100} height={100} alt="image" />
                                         </div>
                                         <p>{item.name}</p>
                                     </div>

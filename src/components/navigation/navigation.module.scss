@@ -7,6 +7,7 @@
     background-color: #ebebeb;
     border-top-left-radius: var(--root-radius);
     padding: 12px 12px 0 0;
+    transition: width ease-in 300ms;
 }
 
 .active {
